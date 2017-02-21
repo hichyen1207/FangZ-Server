@@ -13,7 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.google.gson.Gson;
-import com.server.project.api.PathPoint;
+import com.server.project.api.TaskInfomation;
 import com.server.project.tool.GoogleMapApiKey;
 
 public class RoadClassifier {
@@ -22,10 +22,10 @@ public class RoadClassifier {
 
 		double lat = 24.9873313;
 		double lng = 121.5761281;
-		List<PathPoint> pathList = rc.classifyRoad(lat, lng);
+		List<TaskInfomation> pathList = rc.classifyRoad(lat, lng);
 		Gson gson = new Gson();
 
-		for (PathPoint path : pathList) {
+		for (TaskInfomation path : pathList) {
 			String task = gson.toJson(path);
 			System.out.println(task);
 
@@ -34,8 +34,8 @@ public class RoadClassifier {
 		}
 	}
 
-	public List<PathPoint> classifyRoad(double lat, double lng) throws IOException {
-		List<PathPoint> pathList = new ArrayList<>();
+	public List<TaskInfomation> classifyRoad(double lat, double lng) throws IOException {
+		List<TaskInfomation> pathList = new ArrayList<>();
 
 		for (int i = 0; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
@@ -47,7 +47,7 @@ public class RoadClassifier {
 				double distanceLng = lng + 0.001 * (i + 1);
 				String apiURL = "https://maps.googleapis.com/maps/api/directions/json?origin=" + lat + "," + lng
 						+ "&destination=" + distanceLat + "," + distanceLng + "&mode=walking&key="
-						+ GoogleMapApiKey.getKey();				
+						+ GoogleMapApiKey.getKey();								
 				URL url = new URL(apiURL);
 				URLConnection conn = url.openConnection();
 				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
@@ -70,9 +70,9 @@ public class RoadClassifier {
 				String geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "startLat").replace("lng", "startLng");
 
-				PathPoint coordinate = new PathPoint();
+				TaskInfomation coordinate = new TaskInfomation();
 				Gson gson = new Gson();
-				PathPoint startCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation startCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setStartLat(startCoordinate.getStartLat());
 				coordinate.setStartLng(startCoordinate.getStartLng());
 
@@ -82,7 +82,7 @@ public class RoadClassifier {
 				geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "endLat").replace("lng", "endLng");
 
-				PathPoint endCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation endCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setEndLat(endCoordinate.getEndLat());
 				coordinate.setEndLng(endCoordinate.getEndLng());
 
@@ -123,9 +123,9 @@ public class RoadClassifier {
 				String geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "startLat").replace("lng", "startLng");
 
-				PathPoint coordinate = new PathPoint();
+				TaskInfomation coordinate = new TaskInfomation();
 				Gson gson = new Gson();
-				PathPoint startCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation startCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setStartLat(startCoordinate.getStartLat());
 				coordinate.setStartLng(startCoordinate.getStartLng());
 
@@ -135,7 +135,7 @@ public class RoadClassifier {
 				geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "endLat").replace("lng", "endLng");
 
-				PathPoint endCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation endCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setEndLat(endCoordinate.getEndLat());
 				coordinate.setEndLng(endCoordinate.getEndLng());
 
@@ -176,9 +176,9 @@ public class RoadClassifier {
 				String geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "startLat").replace("lng", "startLng");
 
-				PathPoint coordinate = new PathPoint();
+				TaskInfomation coordinate = new TaskInfomation();
 				Gson gson = new Gson();
-				PathPoint startCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation startCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setStartLat(startCoordinate.getStartLat());
 				coordinate.setStartLng(startCoordinate.getStartLng());
 
@@ -188,7 +188,7 @@ public class RoadClassifier {
 				geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "endLat").replace("lng", "endLng");
 
-				PathPoint endCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation endCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setEndLat(endCoordinate.getEndLat());
 				coordinate.setEndLng(endCoordinate.getEndLng());
 
@@ -229,9 +229,9 @@ public class RoadClassifier {
 				String geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "startLat").replace("lng", "startLng");
 
-				PathPoint coordinate = new PathPoint();
+				TaskInfomation coordinate = new TaskInfomation();
 				Gson gson = new Gson();
-				PathPoint startCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation startCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setStartLat(startCoordinate.getStartLat());
 				coordinate.setStartLng(startCoordinate.getStartLng());
 
@@ -241,7 +241,7 @@ public class RoadClassifier {
 				geometry = text.substring(setStartIndex, setEndIndex);
 				geometry = geometry.replace("lat", "endLat").replace("lng", "endLng");
 
-				PathPoint endCoordinate = gson.fromJson(geometry, PathPoint.class);
+				TaskInfomation endCoordinate = gson.fromJson(geometry, TaskInfomation.class);
 				coordinate.setEndLat(endCoordinate.getEndLat());
 				coordinate.setEndLng(endCoordinate.getEndLng());
 

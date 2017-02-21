@@ -21,8 +21,8 @@ public class AddressCreator {
 
 		// connect to google map api
 		String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + point.getLat() + "," + point.getLng()
-				+ "&key=" + GoogleMapApiKey.getKey();		
-		
+				+ "&key=" + GoogleMapApiKey.getKey();
+
 		System.setProperty("webdriver.chrome.driver", "/Users/Hao/Documents/Java/ProjectServer/chromedriver");
 		WebDriver driver = new ChromeDriver();
 		driver.get(url);

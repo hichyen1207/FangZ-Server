@@ -62,16 +62,58 @@ public class HouseParser {
 					+ "萬";
 			house.setPrice(itemPrice);
 
-			// get description
-			String itemDescription = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(4)
-					.getText();
-			if (itemDescription.contains("社區")) {
-				itemDescription = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(5)
-						.getText();
-			}
-			house.setDescription(itemDescription);
-			houseList.add(house);
+			// get address
+			String itemAddress = itemDriver.findElement(By.id("content-main")).findElement(By.tagName("h1")).getText();
+			house.setAddress(itemAddress);
 
+			// get registered square
+			String itemRegisteredSquare = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li"))
+					.get(1).getText();
+			house.setRegisteredSquare(itemRegisteredSquare);
+
+			// get type
+			String itemType = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(3).getText();
+			house.setType(itemType);
+
+			// get url
+			String itemUrl = itemDriver.getCurrentUrl();
+			house.setUrl(itemUrl);
+
+			// get pattern
+			String itemPattern = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(4)
+					.getText();
+			if (itemPattern.contains("社區")) {
+				itemPattern = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(5).getText();
+				house.setPattern(itemPattern);
+
+				// get status
+				String itemStatus = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(6)
+						.getText();
+				itemStatus = itemStatus.replaceAll("\n", ", ");
+				house.setStatus(itemStatus);
+
+				// get description
+				String itemDescription = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(7)
+						.getText();
+				itemDescription = itemDescription.replaceAll("\n", ",");
+				house.setDescription(itemDescription);
+			} else {
+				house.setPattern(itemPattern);
+
+				// get status
+				String itemStatus = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(5)
+						.getText();
+				itemStatus = itemStatus.replaceAll("\n", ", ");
+				house.setStatus(itemStatus);
+
+				// get description
+				String itemDescription = itemDriver.findElement(By.id("obj-info")).findElements(By.tagName("li")).get(6)
+						.getText();
+				itemDescription = itemDescription.replaceAll("\n", ", ");
+				house.setDescription(itemDescription);
+			}
+
+			houseList.add(house);
 			itemDriver.close();
 		}
 		driver.quit();
@@ -88,13 +130,12 @@ public class HouseParser {
 		// insert each location into table
 		for (House house : houseList) {
 			Statement stmt = c.createStatement();
-			String title = house.getTitle();
-			String description = house.getDescription();
-			String price = house.getPrice();
-			String location = house.getLocation();
-			String insertLocationSQL = "INSERT INTO house(title, description, location, price) VALUES('" + title
-					+ "', '" + description + "', ST_GeomFromText('POINT(" + location + ")', 4326), '" + price + "');";
-			stmt.executeUpdate(insertLocationSQL);
+			String insertHouseSQL = "INSERT INTO house(title, description, location, price, address, registered_square, status, pattern, type, url) VALUES('"
+					+ house.getTitle() + "', '" + house.getDescription() + "', ST_GeomFromText('POINT("
+					+ house.getLocation() + ")', 4326), '" + house.getPrice() + "', '" + house.getAddress() + "', '"
+					+ house.getRegisteredSquare() + "', '" + house.getStatus() + "', '" + house.getPattern() + "', '"
+					+ house.getType() + "', '" + house.getUrl() + "');";
+			stmt.executeUpdate(insertHouseSQL);
 			stmt.close();
 		}
 		c.close();

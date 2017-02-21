@@ -3,10 +3,12 @@ package com.server.project.api;
 public class Task {
 	private String id;
 	private String title;
-	private String location;
+	private String Address;
 	private String start_geometry;
 	private String end_geometry;
 	private String time;
+	private String distance;
+	private String duration;
 
 	public String getId() {
 		return id;
@@ -24,12 +26,12 @@ public class Task {
 		this.title = title;
 	}
 
-	public String getLocation() {
-		return location;
+	public String getAddress() {
+		return Address;
 	}
 
-	public void setLocation(String location) {
-		this.location = location;
+	public void setAddress(String address) {
+		Address = address;
 	}
 
 	public String getStart_geometry() {
@@ -54,6 +56,22 @@ public class Task {
 
 	public void setTime(String time) {
 		this.time = time;
+	}
+
+	public String getDistance() {
+		return distance;
+	}
+
+	public void setDistance(String distance) {
+		this.distance = distance;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
 	}
 
 }

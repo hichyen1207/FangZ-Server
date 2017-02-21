@@ -5,11 +5,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
-
-import com.server.project.api.PathPoint;
-import com.server.project.api.Point;
-import com.server.project.task.createtask.RoadClassifier;
-import com.server.project.tool.GeometryToPoint;
+import com.server.project.api.TaskInfomation;
+import com.server.project.task.createtask.TaskCreator;
 
 public class HouseToTask {
 	public static void main(String[] args) {
@@ -26,10 +23,9 @@ public class HouseToTask {
 			Statement selectST = con.createStatement();
 			Statement updateST = con.createStatement();
 
-			String checkSQL = "select * from house where endNote='here'";
+			String checkSQL = "select * from house where endNote='here';";
 			ResultSet checkRS = selectST.executeQuery(checkSQL);
-			GeometryToPoint pointToDouble = new GeometryToPoint();
-			RoadClassifier roadClassifier = new RoadClassifier();
+			TaskCreator taskCreator = new TaskCreator();
 			if (checkRS.next()) {
 				int startId = Integer.valueOf(checkRS.getString("id")) + 1;
 				String countSQL = "SELECT COUNT('id') FROM house;";
@@ -44,15 +40,14 @@ public class HouseToTask {
 							// 0-> morning; 1-> afternoon; 2-> night; 3->
 							// midnight;
 							for (int i = 0; i <= 3; i++) {
-								Point coordinate = pointToDouble.toPoint(selectRS.getString("location"));
-								List<PathPoint> pathList = roadClassifier.classifyRoad(coordinate.getLat(),
-										coordinate.getLng());
+								List<TaskInfomation> taskInfoList = taskCreator
+										.createTask(selectRS.getString("address"));
 
-								for (PathPoint path : pathList) {
-									String startGeometry = "ST_GeomFromText('POINT(" + path.getStartLng() + " "
-											+ path.getStartLat() + ")', 4326)";
-									String endGeometry = "ST_GeomFromText('POINT(" + path.getEndLng() + " "
-											+ path.getEndLat() + ")', 4326)";
+								for (TaskInfomation taskInfo : taskInfoList) {
+									String startGeometry = "ST_GeomFromText('POINT(" + taskInfo.getStartLng() + " "
+											+ taskInfo.getStartLat() + ")', 4326)";
+									String endGeometry = "ST_GeomFromText('POINT(" + taskInfo.getEndLng() + " "
+											+ taskInfo.getEndLat() + ")', 4326)";
 									String taskTime;
 									if (i == 0) {
 										taskTime = "morning";
@@ -63,10 +58,12 @@ public class HouseToTask {
 									} else {
 										taskTime = "midnight";
 									}
-									String insertSQL = "insert into task (title, location, start_geometry, end_geometry, time) values ('"
-											+ selectRS.getString("title") + "_" + taskTime + "', '"
-											+ selectRS.getString("location") + "', " + startGeometry + ", "
-											+ endGeometry + ", '" + taskTime + "');";
+									String insertSQL = "insert into task (title, address, start_geometry, end_geometry, time, distance, duration) values ('"
+											+ selectRS.getString("address") + "_" + taskTime + "', '"
+											+ selectRS.getString("address") + "', " + startGeometry + ", " + endGeometry
+											+ ", '" + taskTime + "', '" + taskInfo.getDistance() + "', '"
+											+ taskInfo.getDuration() + "');";
+									System.out.println(insertSQL);
 
 									updateST.executeUpdate(insertSQL);
 								}
@@ -85,22 +82,21 @@ public class HouseToTask {
 				while (countRS.next()) {
 					int endId = Integer.valueOf(countRS.getInt(1));
 					for (int k = 1; k <= endId; k++) {
-						String selectSQL = "select * from house where id=" + k;
+						String selectSQL = "select * from house where id=" + k + ";";
 						ResultSet selectRS = selectST.executeQuery(selectSQL);
 						while (selectRS.next()) {
 							// task time classify :
 							// 0-> morning; 1-> afternoon; 2-> night; 3->
 							// midnight;
 							for (int i = 0; i <= 3; i++) {
-								Point coordinate = pointToDouble.toPoint(selectRS.getString("location"));
-								List<PathPoint> pathList = roadClassifier.classifyRoad(coordinate.getLat(),
-										coordinate.getLng());
+								List<TaskInfomation> taskInfoList = taskCreator
+										.createTask(selectRS.getString("address"));
 
-								for (PathPoint path : pathList) {
-									String startGeometry = "ST_GeomFromText('POINT(" + path.getStartLng() + " "
-											+ path.getStartLat() + ")', 4326)";
-									String endGeometry = "ST_GeomFromText('POINT(" + path.getEndLng() + " "
-											+ path.getEndLat() + ")', 4326)";
+								for (TaskInfomation taskInfo : taskInfoList) {
+									String startGeometry = "ST_GeomFromText('POINT(" + taskInfo.getStartLng() + " "
+											+ taskInfo.getStartLat() + ")', 4326)";
+									String endGeometry = "ST_GeomFromText('POINT(" + taskInfo.getEndLng() + " "
+											+ taskInfo.getEndLat() + ")', 4326)";
 									String taskTime;
 									if (i == 0) {
 										taskTime = "morning";
@@ -111,10 +107,12 @@ public class HouseToTask {
 									} else {
 										taskTime = "midnight";
 									}
-									String insertSQL = "insert into task (title, location, start_geometry, end_geometry, time) values ('"
-											+ selectRS.getString("title") + "_" + taskTime + "', '"
-											+ selectRS.getString("location") + "', " + startGeometry + ", "
-											+ endGeometry + ", '" + taskTime + "');";
+									String insertSQL = "insert into task (title, address, start_geometry, end_geometry, time, distance, duration) values ('"
+											+ selectRS.getString("address") + "_" + taskTime + "', '"
+											+ selectRS.getString("address") + "', " + startGeometry + ", " + endGeometry
+											+ ", '" + taskTime + "', '" + taskInfo.getDistance() + "', '"
+											+ taskInfo.getDuration() + "');";
+									System.out.println(insertSQL);
 
 									updateST.executeUpdate(insertSQL);
 								}

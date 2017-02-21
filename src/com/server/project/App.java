@@ -4,9 +4,10 @@ import static spark.Spark.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.Gson;
-import com.server.project.api.Location;
+import com.server.project.api.House;
 import com.server.project.api.Task;
 import com.server.project.api.Video;
+import com.server.project.response.HouseResponcer;
 import com.server.project.response.LocationResponcer;
 import com.server.project.response.TaskResponcer;
 import com.server.project.response.VideoResponcer;
@@ -21,6 +22,7 @@ public class App {
 		LocationResponcer locationListResponcer = new LocationResponcer();
 		VideoResponcer videoResponcer = new VideoResponcer();
 		TaskResponcer getTask = new TaskResponcer();
+		HouseResponcer houseResponcer = new HouseResponcer();
 
 		// set port
 		exception(Exception.class, (e, req, res) -> e.printStackTrace());
@@ -29,7 +31,7 @@ public class App {
 
 		// task location list
 		get("/taskLocationList", (req, res) -> {
-			List<Location> taskLocationList = null;
+			List<com.server.project.api.Road> taskLocationList = null;
 			try {
 				taskLocationList = locationListResponcer.getTaskLocationList();
 			} catch (Exception e) {
@@ -39,14 +41,14 @@ public class App {
 		}, gson::toJson);
 
 		// task list
-		get("/taskList/:geometry/:time", (req, res) -> {
-			String geometry;
+		get("/taskList/:address/:time", (req, res) -> {
+			String address;
 			String time;
 			List<Task> taskList = null;
 			try {
-				geometry = req.params("geometry");
+				address = req.params("address");
 				time = req.params("time");
-				taskList = getTask.getTaskList(geometry, time);
+				taskList = getTask.getTaskList(address, time);
 			} catch (Exception e2) {
 				e2.getMessage();
 			}
@@ -70,7 +72,7 @@ public class App {
 		get("/videoRoadList", (req, res) -> {
 			List<com.server.project.api.Road> videoLocationList = null;
 			try {
-				videoLocationList = locationListResponcer.getVideoRoadList();
+				videoLocationList = locationListResponcer.getRoadList();
 			} catch (Exception e) {
 				e.getMessage();
 			}
@@ -83,7 +85,7 @@ public class App {
 			List<com.server.project.api.House> houseList = null;
 			try {
 				address = req.params("address");
-				houseList = locationListResponcer.getHouseList(address);
+				houseList = houseResponcer.getHouseList(address);
 			} catch (Exception e) {
 				e.getMessage();
 			}
@@ -91,12 +93,12 @@ public class App {
 		}, gson::toJson);
 
 		// video list
-		get("/videoList/:location", (req, res) -> {
-			String location;
+		get("/videoList/:address", (req, res) -> {
+			String address;
 			List<Video> videoList = new ArrayList<>();
 			try {
-				location = req.params("location");
-				videoList = videoResponcer.getVideoList(location);
+				address = req.params("address");
+				videoList = videoResponcer.getVideoList(address);
 			} catch (Exception e) {
 				e.getMessage();
 			}
@@ -114,6 +116,19 @@ public class App {
 				e.getMessage();
 			}
 			return video;
+		}, gson::toJson);
+
+		// house
+		get("/house/:id", (req, res) -> {
+			String id;
+			House house = null;
+			try {
+				id = req.params("id");
+				house = houseResponcer.getHouse(Integer.valueOf(id));
+			} catch (Exception e) {
+				e.getMessage();
+			}
+			return house;
 		}, gson::toJson);
 	}
 }

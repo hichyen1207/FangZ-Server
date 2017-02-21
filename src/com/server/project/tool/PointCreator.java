@@ -20,43 +20,14 @@ public class PointCreator {
 		Gson gson = new Gson();
 		PointCreator cc = new PointCreator();
 
-		// create point by specific address
-		Point coordinate = cc.createPointBySpecificAddress("台北市文山區指南路二段64號");
-		System.out.println(gson.toJson(coordinate));
-
 		// create point by road
 		Point roadPoint = cc.createPointByRoad("台灣新北市中和區中山路三段");
 		System.out.println(gson.toJson(roadPoint));
 
-	}
-
-	public Point createPointBySpecificAddress(String address) throws IOException {
-		// connect to google map api
-		URL url = new URL("http://maps.googleapis.com/maps/api/geocode/json?address=" + address + "&sensor=false");
-		URLConnection conn = url.openConnection();
-		conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
-
-		InputStream in = conn.getInputStream();
-		BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
-
-		// parse the HTML
-		String retVal = "";
-		String line = null;
-		while ((line = br.readLine()) != null) {
-			retVal = retVal + line + "\n";
-		}
-		Document doc = Jsoup.parse(retVal);
-
-		// find geometry coordinate
-		String text = doc.text();
-		int geoIndex = text.indexOf("geometry");
-		String geometry = text.substring(geoIndex + 27, geoIndex + 70);
-
-		// Json to AddressCoordinate
-		Gson gson = new Gson();
-		Point coordinate = gson.fromJson(geometry, Point.class);
-
-		return coordinate;
+		// create point by specific address
+		// Point coordinate =
+		// cc.createPointBySpecificAddress("台北市文山區指南路二段100號");
+		// System.out.println(gson.toJson(coordinate));
 	}
 
 	public Point createPointByRoad(String address) throws IOException {
@@ -92,4 +63,39 @@ public class PointCreator {
 
 		return point;
 	}
+
+	// public Point createPointBySpecificAddress(String address) throws
+	// IOException {
+	// // connect to google map api
+	// URL url = new
+	// URL("http://maps.googleapis.com/maps/api/geocode/json?address=" + address
+	// + "&sensor=false");
+	// System.out.println(url);
+	// URLConnection conn = url.openConnection();
+	// conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+	//
+	// InputStream in = conn.getInputStream();
+	// BufferedReader br = new BufferedReader(new InputStreamReader(in,
+	// "utf-8"));
+	//
+	// // parse the HTML
+	// String retVal = "";
+	// String line = null;
+	// while ((line = br.readLine()) != null) {
+	// retVal = retVal + line + "\n";
+	// }
+	// Document doc = Jsoup.parse(retVal);
+	//
+	// // find geometry coordinate
+	// String text = doc.text();
+	// int geoIndex = text.indexOf("geometry");
+	// String geometry = text.substring(geoIndex + 27, geoIndex + 70);
+	// System.out.println(geometry);
+	//
+	// // Json to AddressCoordinate
+	// Gson gson = new Gson();
+	// Point coordinate = gson.fromJson(geometry, Point.class);
+	//
+	// return coordinate;
+	// }
 }

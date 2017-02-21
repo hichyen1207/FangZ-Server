@@ -1,11 +1,25 @@
 package com.server.project.api;
 
 public class House {
+	private int id;
 	private String title;
 	private String description;
 	private String address;
 	private String location;
 	private String price;
+	private String registeredSquare;
+	private String status;
+	private String pattern;
+	private String type;
+	private String url;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getTitle() {
 		return title;
@@ -45,6 +59,46 @@ public class House {
 
 	public void setPrice(String price) {
 		this.price = price;
+	}
+
+	public String getRegisteredSquare() {
+		return registeredSquare;
+	}
+
+	public void setRegisteredSquare(String registeredSquare) {
+		this.registeredSquare = registeredSquare;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getPattern() {
+		return pattern;
+	}
+
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 }

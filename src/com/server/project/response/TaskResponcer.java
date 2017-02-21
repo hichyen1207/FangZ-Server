@@ -17,15 +17,15 @@ public class TaskResponcer {
 		TaskResponcer tr = new TaskResponcer();
 
 		// task list
-		List<Task> list = tr.getTaskList("0101000020E6100000A60A4625755E5E408BFD65F7E4013940", "8");
+		List<Task> list = tr.getTaskList("新北市三重區重新路三段", "8");
 		System.out.println(gson.toJson(list));
 
 		// task
-		Task retask = tr.getTask(3741);
+		Task retask = tr.getTask(68);
 		System.out.println(gson.toJson(retask));
 	}
 
-	public List<Task> getTaskList(String location, String requestTime) throws SQLException, ClassNotFoundException {
+	public List<Task> getTaskList(String address, String requestTime) throws SQLException, ClassNotFoundException {
 		Task task = new Task();
 		List<Task> taskList = new ArrayList<>();
 		Connection c = null;
@@ -36,21 +36,19 @@ public class TaskResponcer {
 		int reqTimeValue = Integer.valueOf(requestTime);
 		String reqTime = reqTimeToText(reqTimeValue);
 		// execute sql query from specific view
-		String getTasks = "SELECT id, title, ST_AsText(location), ST_AsText(start_geometry), ST_AsText(end_geometry), time FROM task_"
-				+ reqTime + " where location='" + location + "';";
+		String getTasks = "SELECT * FROM task_" + reqTime + " where address='" + address + "';";
 		Statement stmt = c.createStatement();
 		ResultSet rs = stmt.executeQuery(getTasks);
 		// form a task with id, title, ... & form a task list
 		while (rs.next()) {
 			String id = rs.getString("id");
 			String title = rs.getString("title");
-			String houselocation = rs.getString(3);
 			String start_geometry = rs.getString(4);
 			String end_geometry = rs.getString(5);
 
 			task.setId(id);
 			task.setTitle(title);
-			task.setLocation(houselocation);
+			task.setAddress(address);
 			task.setStart_geometry(start_geometry);
 			task.setEnd_geometry(end_geometry);
 			taskList.add(task);
@@ -67,15 +65,17 @@ public class TaskResponcer {
 			Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
 			Statement selectST = con.createStatement();
 
-			String selectSQL = "select * from task where id=" + id;
+			String selectSQL = "select * from task where id=" + id + ";";
 			ResultSet selectRS = selectST.executeQuery(selectSQL);
 			while (selectRS.next()) {
 				task.setId(String.valueOf(id));
 				task.setTitle(selectRS.getString("title"));
-				task.setLocation(selectRS.getString("location"));
+				task.setAddress(selectRS.getString("address"));
 				task.setStart_geometry(selectRS.getString("start_geometry"));
 				task.setEnd_geometry(selectRS.getString("end_geometry"));
 				task.setTime(selectRS.getString("time"));
+				task.setDistance(selectRS.getString("distance"));
+				task.setDuration(selectRS.getString("duration"));
 			}
 		} catch (Exception e) {
 			e.getMessage();

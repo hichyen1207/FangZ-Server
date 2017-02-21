@@ -4,7 +4,6 @@ public class Video {
 	private int id;
 	private String youtube_id;
 	private String title;
-	private double[] location;
 	private double[] start_geometry;
 	private double[] end_geometry;
 	private String time;
@@ -32,14 +31,6 @@ public class Video {
 
 	public void setTitle(String title) {
 		this.title = title;
-	}
-
-	public double[] getLocation() {
-		return location;
-	}
-
-	public void setLocation(double[] location) {
-		this.location = location;
 	}
 
 	public double[] getStart_geometry() {
