@@ -21,17 +21,25 @@ public class TaskCreator {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		Gson gson = new Gson();
 		TaskCreator tc = new TaskCreator();
-		List<TaskInfomation> list = tc.createTask("台北市文山區星光路一段");
+		List<TaskInfomation> list = tc.createTask("台北市忠孝東路一段");
 		System.out.println(gson.toJson(list));
+
+		// List<String> laneList = tc.findLane("台北市忠孝東路一段", 48, 71);
+		// System.out.println(laneList);
+
+		// List<String> laneAddress = tc.getLaneAddress("台北市忠孝東路一段49巷");
+		// System.out.println(laneAddress);
 	}
 
 	public List<TaskInfomation> createTask(String address) throws IOException, InterruptedException {
 		List<TaskInfomation> taskInfoList = new ArrayList<>();
-		String startAddress = null;
-		String endAddress = null;
+		int startAddresNum = 0;
+		int endAddresNum = 0;
+
+		// find start address
 		for (int j = 1; j < 10; j++) {
-			URL url = new URL(
-					"http://maps.googleapis.com/maps/api/geocode/json?address=" + address + j + "號&sensor=false");
+			URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + j + "號&key="
+					+ GoogleMapApiKey.getKey());
 			URLConnection conn = url.openConnection();
 			conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
 
@@ -51,7 +59,7 @@ public class TaskCreator {
 			int index = text.indexOf("formatted_address");
 			String checkVal = text.substring(index + 26, index + 27);
 			if (checkVal.equals(String.valueOf(j))) {
-				startAddress = address + j + "號";
+				startAddresNum = j;
 				break;
 			} else if (checkVal.equals("You")) {
 				j = j - 1;
@@ -59,12 +67,19 @@ public class TaskCreator {
 			TimeUnit.MILLISECONDS.sleep(100);
 		}
 
-		for (int i = 400; i > 0; i--) {
+		System.out.println("start find end address");
+		// find end address
+		for (int i = 500; i > 0; i--) {
+			if (i % 10 == 0) {
+				System.out.println("count end address No." + i);
+			}
 			// connect to google map api
-			URL url = new URL(
-					"http://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+			URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+					+ GoogleMapApiKey.getKey());
 			URLConnection conn = url.openConnection();
 			conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+			conn.setRequestProperty("Content-Language", "zh-tw");
+			conn.setRequestProperty("Accept-Charset", "UTF-8");
 
 			InputStream in = conn.getInputStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
@@ -79,16 +94,739 @@ public class TaskCreator {
 
 			// find geometry coordinate
 			String text = doc.text();
-			int index = text.indexOf("formatted_address");
-			String checkVal = text.substring(index + 22, index + 25);
-			if (checkVal.equals("No.")) {
-				endAddress = address + i + "號";
+			int startIndex = text.indexOf("formatted_address");
+			startIndex = startIndex + 26;
+			int endIndex = text.indexOf(",", startIndex);
+			String checkVal = text.substring(startIndex, endIndex);
+			if (checkVal.equals(String.valueOf(i))) {
+				endAddresNum = i;
 				break;
 			} else if (checkVal.equals("You")) {
 				i = i + 1;
 			}
 			TimeUnit.MILLISECONDS.sleep(100);
 		}
+
+		System.out.println("start cut road");
+		List<String> roadList = cutRoad(address, startAddresNum, endAddresNum);
+		System.out.println(roadList);
+		for (int i = 0; i < roadList.size() - 1; i++) {
+			TaskInfomation taskInfoByRoad = createTaskInRoad(roadList.get(i), roadList.get(i + 1));
+			taskInfoList.add(taskInfoByRoad);
+		}
+
+		System.out.println("start find lane");
+		List<String> laneList = findLane(address, startAddresNum, endAddresNum);
+		System.out.println(laneList);
+		System.out.println("start get lane task");
+		for (String lane : laneList) {
+			List<String> landPath = getLaneAddress(lane);
+			System.out.println(landPath);
+			TaskInfomation taskInfoByLane = createTaskInRoad(landPath.get(0), landPath.get(1));
+			taskInfoList.add(taskInfoByLane);
+		}
+
+		Gson gson = new Gson();
+		System.out.println(gson.toJson(taskInfoList));
+
+		return taskInfoList;
+	}
+
+	private List<String> cutRoad(String address, int startAddressNum, int endAddressNum)
+			throws IOException, InterruptedException {
+		List<String> addressList = new ArrayList<>();
+
+		if (endAddressNum <= 100) {
+			addressList.add(address + startAddressNum + "號");
+			addressList.add(address + endAddressNum + "號");
+		} else if (100 < endAddressNum && endAddressNum <= 200) {
+			int addressNodeNum = 0;
+			addressList.add(address + startAddressNum + "號");
+
+			// for No.100
+			for (int i = 101; i < 110; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			addressList.add(address + endAddressNum + "號");
+		} else if (200 < endAddressNum && endAddressNum <= 300) {
+			int addressNodeNum = 0;
+			addressList.add(address + startAddressNum + "號");
+
+			// for No.100
+			for (int i = 101; i < 110; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.200
+			for (int i = 201; i < 210; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			addressList.add(address + endAddressNum + "號");
+		} else if (300 < endAddressNum && endAddressNum <= 400) {
+			int addressNodeNum = 0;
+			addressList.add(address + startAddressNum + "號");
+
+			// for No.100
+			for (int i = 101; i < 110; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.200
+			for (int i = 201; i < 210; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.300
+			for (int i = 301; i < 310; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			addressList.add(address + endAddressNum + "號");
+		} else if (400 < endAddressNum && endAddressNum <= 500) {
+			int addressNodeNum = 0;
+			addressList.add(address + startAddressNum + "號");
+
+			// for No.100
+			for (int i = 101; i < 110; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.200
+			for (int i = 201; i < 210; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.300
+			for (int i = 301; i < 310; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.400
+			for (int i = 401; i < 410; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			addressList.add(address + endAddressNum + "號");
+		} else if (500 < endAddressNum && endAddressNum <= 600) {
+			int addressNodeNum = 0;
+			addressList.add(address + startAddressNum + "號");
+
+			// for No.100
+			for (int i = 101; i < 110; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.200
+			for (int i = 201; i < 210; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.300
+			for (int i = 301; i < 310; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.400
+			for (int i = 401; i < 410; i++) {
+				URL url = new URL(
+						"https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&sensor=false");
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.500
+			for (int i = 501; i < 510; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			addressList.add(address + endAddressNum + "號");
+		} else {
+			int addressNodeNum = 0;
+			addressList.add(address + startAddressNum + "號");
+
+			// for No.100
+			for (int i = 101; i < 110; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.200
+			for (int i = 201; i < 210; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.300
+			for (int i = 301; i < 310; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.400
+			for (int i = 401; i < 410; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.500
+			for (int i = 501; i < 510; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			// for No.600
+			for (int i = 601; i < 610; i++) {
+				URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+						+ GoogleMapApiKey.getKey());
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+				InputStream in = conn.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+				String retVal = "";
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					retVal = retVal + line + "\n";
+				}
+				Document doc = Jsoup.parse(retVal);
+
+				String text = doc.text();
+				int startIndex = text.indexOf("formatted_address");
+				startIndex = startIndex + 26;
+				int endIndex = text.indexOf(",", startIndex);
+				String checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals(String.valueOf(i))) {
+					addressNodeNum = i;
+					addressList.add(address + addressNodeNum + "號");
+					break;
+				} else if (checkVal.equals("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+
+			addressList.add(address + endAddressNum + "號");
+		}
+		return addressList;
+	}
+
+	private TaskInfomation createTaskInRoad(String startAddress, String endAddress) throws IOException {
+		TaskInfomation taskInfo = new TaskInfomation();
+		Gson gson = new Gson();
 
 		String apiURL = "https://maps.googleapis.com/maps/api/directions/json?origin=" + startAddress + "&destination="
 				+ endAddress + "&mode=walking&key=" + GoogleMapApiKey.getKey();
@@ -108,8 +846,10 @@ public class TaskCreator {
 		Document doc = Jsoup.parse(retVal);
 
 		String text = doc.text();
-		TaskInfomation taskInfo = new TaskInfomation();
-		Gson gson = new Gson();
+
+		// set address
+		taskInfo.setStartAddress(startAddress);
+		taskInfo.setEndAddress(endAddress);
 
 		// get start geometry
 		int geoIndex = text.indexOf("start_location");
@@ -147,8 +887,130 @@ public class TaskCreator {
 		String duration = text.substring(durStartIndex + 9, durEndIndex - 1);
 		taskInfo.setDuration(duration);
 
-		taskInfoList.add(taskInfo);
+		return taskInfo;
+	}
 
-		return taskInfoList;
+	private List<String> findLane(String address, int startNum, int endNum) throws IOException, InterruptedException {
+		List<String> laneList = new ArrayList<>();
+		for (int i = startNum; i < endNum; i++) {
+			if (i % 10 == 0) {
+				System.out.println("count number to find lane No." + i);
+			}
+			URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "巷&key="
+					+ GoogleMapApiKey.getKey());
+			URLConnection conn = url.openConnection();
+			conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+			InputStream in = conn.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+			String retVal = "";
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				retVal = retVal + line + "\n";
+			}
+			Document doc = Jsoup.parse(retVal);
+
+			String text = doc.text();
+			int index = text.indexOf("long_name");
+			index = index + 19;
+			int endIndex = text.indexOf(",", index);
+			String checkLane = text.substring(index, endIndex);
+			if (checkLane.equals(String.valueOf(i))) {
+				laneList.add(address + i + "巷");
+			} else if (checkLane.contains("You")) {
+				i = i - 1;
+			}
+			TimeUnit.MILLISECONDS.sleep(100);
+		}
+		return laneList;
+	}
+
+	private List<String> getLaneAddress(String address) throws IOException, InterruptedException {
+		List<String> laneAddress = new ArrayList<>();
+		String startAddress = null;
+		String endAddress = null;
+
+		// find start address
+		for (int i = 1; i < 10; i++) {
+			URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+					+ GoogleMapApiKey.getKey());
+			URLConnection conn = url.openConnection();
+			conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+
+			InputStream in = conn.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+			// parse the HTML
+			String retVal = "";
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				retVal = retVal + line + "\n";
+			}
+			Document doc = Jsoup.parse(retVal);
+			String text = doc.text();
+			int startIndex = text.indexOf("formatted_address");
+			startIndex = startIndex + 26;
+			int endIndex = text.indexOf(",", startIndex);
+			String checkVal = text.substring(startIndex, endIndex);
+			if (checkVal.equals(String.valueOf(i))) {
+				startIndex = text.indexOf("long_name");
+				startIndex = text.indexOf("long_name", startIndex + 1);
+				startIndex = startIndex + 14;
+				endIndex = text.indexOf(" ", startIndex);
+				checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals("Lane")) {
+					startAddress = address + i + "號";
+					break;
+				} else if (checkVal.contains("You")) {
+					i = i - 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+		}
+
+		// find end address
+		for (int i = 200; i > 10; i--) {
+			if (i % 10 == 0) {
+				System.out.println("count end lane No." + i);
+			}
+			TimeUnit.MILLISECONDS.sleep(100);
+			URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?address=" + address + i + "號&key="
+					+ GoogleMapApiKey.getKey());
+			URLConnection conn = url.openConnection();
+			conn.setRequestProperty("user-agent", "Chrome/7.0.517.44");
+
+			InputStream in = conn.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
+
+			// parse the HTML
+			String retVal = "";
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				retVal = retVal + line + "\n";
+			}
+			Document doc = Jsoup.parse(retVal);
+			String text = doc.text();
+			int startIndex = text.indexOf("formatted_address");
+			startIndex = startIndex + 26;
+			int endIndex = text.indexOf(",", startIndex);
+			String checkVal = text.substring(startIndex, endIndex);
+			if (checkVal.equals(String.valueOf(i))) {
+				startIndex = text.indexOf("long_name");
+				startIndex = text.indexOf("long_name", startIndex + 1);
+				startIndex = startIndex + 14;
+				endIndex = text.indexOf(" ", startIndex);
+				checkVal = text.substring(startIndex, endIndex);
+				if (checkVal.equals("Lane")) {
+					endAddress = address + i + "號";
+					break;
+				} else if (checkVal.contains("You")) {
+					i = i + 1;
+				}
+				TimeUnit.MILLISECONDS.sleep(100);
+			}
+		}
+		laneAddress.add(startAddress);
+		laneAddress.add(endAddress);
+		return laneAddress;
 	}
 }

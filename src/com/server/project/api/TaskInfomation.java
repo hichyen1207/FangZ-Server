@@ -7,6 +7,8 @@ public class TaskInfomation {
 	private double endLng;
 	private String distance;
 	private String duration;
+	private String startAddress;
+	private String endAddress;
 
 	public double getStartLat() {
 		return startLat;
@@ -54,6 +56,22 @@ public class TaskInfomation {
 
 	public void setDuration(String duration) {
 		this.duration = duration;
+	}
+
+	public String getStartAddress() {
+		return startAddress;
+	}
+
+	public void setStartAddress(String startAddress) {
+		this.startAddress = startAddress;
+	}
+
+	public String getEndAddress() {
+		return endAddress;
+	}
+
+	public void setEndAddress(String endAddress) {
+		this.endAddress = endAddress;
 	}
 
 }

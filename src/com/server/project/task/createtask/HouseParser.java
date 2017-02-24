@@ -31,7 +31,7 @@ public class HouseParser {
 		driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
 		List<WebElement> resultItems = driver.findElements(By.className("search_result_item"));
 		// navigate to each page
-		for (int i = 0; i < 3; i++) {
+		for (int i = 4; i < 100; i++) {
 			House house = new House();
 			WebElement item = resultItems.get(i);
 			String itemURL = item.findElement(By.tagName("a")).getAttribute("href");
