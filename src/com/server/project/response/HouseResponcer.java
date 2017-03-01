@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.Gson;
 import com.server.project.api.House;
+import com.server.project.tool.GeometryToPoint;
 
 public class HouseResponcer {
 	public static void main(String[] args) {
@@ -15,11 +16,11 @@ public class HouseResponcer {
 		HouseResponcer hr = new HouseResponcer();
 
 		// house list
-		List<House> houseList = hr.getHouseList("台北市中正區博愛路");
-		System.out.println(gson.toJson(houseList));
+		// List<House> houseList = hr.getHouseList("台北市中正區博愛路");
+		// System.out.println(gson.toJson(houseList));
 
 		// house
-		House house = hr.getHouse(13);
+		House house = hr.getHouse(9);
 		System.out.println(gson.toJson(house));
 	}
 
@@ -73,6 +74,12 @@ public class HouseResponcer {
 				house.setPattern(selectRS.getString("pattern"));
 				house.setStatus(selectRS.getString("status"));
 				house.setUrl(selectRS.getString("url"));
+
+				String locationGeo = selectRS.getString("location");
+				GeometryToPoint toPoint = new GeometryToPoint();
+				com.server.project.api.Point locationPoint = toPoint.toPoint(locationGeo);
+				double[] location = { locationPoint.getLat(), locationPoint.getLng() };
+				house.setLocationPoint(location);
 			}
 		} catch (Exception e) {
 			e.getMessage();

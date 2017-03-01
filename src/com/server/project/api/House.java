@@ -12,6 +12,9 @@ public class House {
 	private String pattern;
 	private String type;
 	private String url;
+	private String addressGeometry;
+	private double[] locationPoint;
+	private double[] addressPoint;
 
 	public int getId() {
 		return id;
@@ -99,6 +102,30 @@ public class House {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public double[] getLocationPoint() {
+		return locationPoint;
+	}
+
+	public void setLocationPoint(double[] locationPoint) {
+		this.locationPoint = locationPoint;
+	}
+
+	public String getAddressGeometry() {
+		return addressGeometry;
+	}
+
+	public void setAddressGeometry(String addressGeometry) {
+		this.addressGeometry = addressGeometry;
+	}
+
+	public double[] getAddressPoint() {
+		return addressPoint;
+	}
+
+	public void setAddressPoint(double[] addressPoint) {
+		this.addressPoint = addressPoint;
 	}
 
 }

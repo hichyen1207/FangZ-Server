@@ -48,7 +48,7 @@ public class PointCreator {
 		Document doc = Jsoup.parse(retVal);
 
 		// find geometry coordinate
-		String text = doc.text();
+		String text = doc.text();		
 		int locationIndex = text.indexOf("location");
 		int latIndex = text.indexOf("lat", locationIndex);
 		int latStartIndex = text.indexOf(":", latIndex);

@@ -20,8 +20,8 @@ public class LocationResponcer {
 		LocationResponcer ll = new LocationResponcer();
 
 		// task location list
-		List<Road> taskList = ll.getTaskLocationList();
-		System.out.println(gson.toJson(taskList));
+		// List<Road> taskList = ll.getTaskLocationList();
+		// System.out.println(gson.toJson(taskList));
 
 		// video road list
 		List<Road> videoList = ll.getRoadList();
@@ -73,8 +73,7 @@ public class LocationResponcer {
 		return taskLocation;
 	}
 
-	public List<Road> getRoadList() {
-		PointCreator createPoint = new PointCreator();
+	public List<Road> getRoadList() {		
 		List<Road> videoAddress = new ArrayList<>();
 		try {
 			Class.forName("org.postgresql.Driver").newInstance();
@@ -83,26 +82,29 @@ public class LocationResponcer {
 			Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
 			Statement selectST = con.createStatement();
 
-			String sql = " select * from house;";
+			String sql = "select distinct address, ST_AsText(address_point)  from house;";
 
 			ResultSet selectRS = selectST.executeQuery(sql);
+			int count = 0;
 			while (selectRS.next()) {
+				count ++;				
 				Road road = new Road();
-				int count = 0;
-				for (Road loIndex : videoAddress) {
-					if (selectRS.getString("address").equals(loIndex.getAddress())) {
-						count++;
-					}
-				}
-				if (count == 0) {
-					String address = selectRS.getString("address");
-					Point addressPoint = createPoint.createPointByRoad(address);
-					road.setAddress(address);
-					road.setLat(addressPoint.getLat());
-					road.setLng(addressPoint.getLng());
-					videoAddress.add(road);
-				}
+
+				String address = selectRS.getString("address");
+				String addressPoint = selectRS.getString("st_astext");				
+				int startIndex = addressPoint.indexOf("(");
+				int midIndex = addressPoint.indexOf(" ");
+				int endIndex = addressPoint.indexOf(")");
+				double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
+				double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
+
+				road.setAddress(address);
+				road.setLat(lat);
+				road.setLng(lng);
+				videoAddress.add(road);
+
 			}
+			System.out.println("total address number = " + count);
 			selectRS.close();
 			selectST.close();
 			con.close();
