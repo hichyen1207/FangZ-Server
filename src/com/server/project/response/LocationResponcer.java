@@ -1,8 +1,10 @@
 package com.server.project.response;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -15,7 +17,8 @@ import com.server.project.api.Road;
 import com.server.project.tool.PointCreator;
 
 public class LocationResponcer {
-	public static void main(String[] args) {
+	public static void main(String[] args)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Gson gson = new Gson();
 		LocationResponcer ll = new LocationResponcer();
 
@@ -28,89 +31,84 @@ public class LocationResponcer {
 		System.out.println(gson.toJson(videoList));
 	}
 
-	public List<Road> getTaskLocationList() {
+	public List<Road> getTaskLocationList()
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, IOException {
 		PointCreator createPoint = new PointCreator();
 		List<Road> taskLocation = new ArrayList<>();
-		try {
-			Class.forName("org.postgresql.Driver").newInstance();
+		Class.forName("org.postgresql.Driver").newInstance();
 
-			String url = "jdbc:postgresql://140.119.19.33:5432/project";
-			Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
-			Statement selectST = con.createStatement();
+		String url = "jdbc:postgresql://140.119.19.33:5432/project";
+		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
+		Statement selectST = con.createStatement();
 
-			// check time
-			DateFormat dateFormat = new SimpleDateFormat("HH");
-			Calendar cal = Calendar.getInstance();
-			int userCurrentTime = Integer.valueOf(dateFormat.format(cal.getTime()));
-			String reqTime = reqTimeToText(userCurrentTime);
+		// check time
+		DateFormat dateFormat = new SimpleDateFormat("HH");
+		Calendar cal = Calendar.getInstance();
+		int userCurrentTime = Integer.valueOf(dateFormat.format(cal.getTime()));
+		String reqTime = reqTimeToText(userCurrentTime);
 
-			String sql = " select * from task_" + reqTime + ";";
+		String sql = " select * from task_" + reqTime + ";";
 
-			ResultSet selectRS = selectST.executeQuery(sql);
-			while (selectRS.next()) {
-				Road road = new Road();
-				int count = 0;
-				for (Road loIndex : taskLocation) {
-					if (selectRS.getString("address").equals(loIndex.getAddress())) {
-						count++;
-					}
-				}
-				if (count == 0) {
-					String address = selectRS.getString("address");
-					Point addressPoint = createPoint.createPointByRoad(address);
-					road.setAddress(address);
-					road.setLat(addressPoint.getLat());
-					road.setLng(addressPoint.getLng());
-					taskLocation.add(road);
+		ResultSet selectRS = selectST.executeQuery(sql);
+		while (selectRS.next()) {
+			Road road = new Road();
+			int count = 0;
+			for (Road loIndex : taskLocation) {
+				if (selectRS.getString("address").equals(loIndex.getAddress())) {
+					count++;
 				}
 			}
-			selectRS.close();
-			selectST.close();
-			con.close();
-		} catch (Exception e) {
-			e.printStackTrace();
+			if (count == 0) {
+				String address = selectRS.getString("address");
+				Point addressPoint = createPoint.createPointByRoad(address);
+				road.setAddress(address);
+				road.setLat(addressPoint.getLat());
+				road.setLng(addressPoint.getLng());
+				taskLocation.add(road);
+			}
 		}
+		selectRS.close();
+		selectST.close();
+		con.close();
 		return taskLocation;
 	}
 
-	public List<Road> getRoadList() {		
+	public List<Road> getRoadList()
+			throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		List<Road> videoAddress = new ArrayList<>();
-		try {
-			Class.forName("org.postgresql.Driver").newInstance();
+		Class.forName("org.postgresql.Driver").newInstance();
 
-			String url = "jdbc:postgresql://140.119.19.33:5432/project";
-			Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
-			Statement selectST = con.createStatement();
+		String url = "jdbc:postgresql://140.119.19.33:5432/project";
+		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
+		Statement selectST = con.createStatement();
 
-			String sql = "select distinct address, ST_AsText(address_point)  from house;";
+		String sql = "select distinct address, ST_AsText(address_point)  from house;";
 
-			ResultSet selectRS = selectST.executeQuery(sql);
-			int count = 0;
-			while (selectRS.next()) {
-				count ++;				
-				Road road = new Road();
+		ResultSet selectRS = selectST.executeQuery(sql);
+		int count = 0;
+		while (selectRS.next()) {
+			count++;
+			Road road = new Road();
 
-				String address = selectRS.getString("address");
-				String addressPoint = selectRS.getString("st_astext");				
-				int startIndex = addressPoint.indexOf("(");
-				int midIndex = addressPoint.indexOf(" ");
-				int endIndex = addressPoint.indexOf(")");
-				double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
-				double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
+			String address = selectRS.getString("address");
+			String addressPoint = selectRS.getString("st_astext");
+			int startIndex = addressPoint.indexOf("(");
+			int midIndex = addressPoint.indexOf(" ");
+			int endIndex = addressPoint.indexOf(")");
+			double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
+			double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
 
-				road.setAddress(address);
-				road.setLat(lat);
-				road.setLng(lng);
-				videoAddress.add(road);
+			road.setAddress(address);
+			road.setLat(lat);
+			road.setLng(lng);
+			videoAddress.add(road);
 
-			}
-			System.out.println("total address number = " + count);
-			selectRS.close();
-			selectST.close();
-			con.close();
-		} catch (Exception e) {
-			e.getMessage();
 		}
+		System.out.println("total address number = " + count);
+		selectRS.close();
+		selectST.close();
+		con.close();
+
 		return videoAddress;
 	}
 

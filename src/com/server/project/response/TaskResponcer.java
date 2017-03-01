@@ -12,7 +12,8 @@ import com.google.gson.Gson;
 import com.server.project.api.Task;
 
 public class TaskResponcer {
-	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+	public static void main(String[] args)
+			throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
 		Gson gson = new Gson();
 		TaskResponcer tr = new TaskResponcer();
 
@@ -53,33 +54,38 @@ public class TaskResponcer {
 			task.setEnd_geometry(end_geometry);
 			taskList.add(task);
 		}
+		stmt.close();
+		rs.close();
+		c.close();
+
 		return taskList;
 	}
 
-	public Task getTask(int id) {
+	public Task getTask(int id)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Task task = new Task();
-		try {
-			// connect DB
-			Class.forName("org.postgresql.Driver").newInstance();
-			String url = "jdbc:postgresql://140.119.19.33:5432/project";
-			Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
-			Statement selectST = con.createStatement();
+		// connect DB
+		Class.forName("org.postgresql.Driver").newInstance();
+		String url = "jdbc:postgresql://140.119.19.33:5432/project";
+		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
+		Statement selectST = con.createStatement();
 
-			String selectSQL = "select * from task where id=" + id + ";";
-			ResultSet selectRS = selectST.executeQuery(selectSQL);
-			while (selectRS.next()) {
-				task.setId(String.valueOf(id));
-				task.setTitle(selectRS.getString("title"));
-				task.setAddress(selectRS.getString("address"));
-				task.setStart_geometry(selectRS.getString("start_geometry"));
-				task.setEnd_geometry(selectRS.getString("end_geometry"));
-				task.setTime(selectRS.getString("time"));
-				task.setDistance(selectRS.getString("distance"));
-				task.setDuration(selectRS.getString("duration"));
-			}
-		} catch (Exception e) {
-			e.getMessage();
+		String selectSQL = "select * from task where id=" + id + ";";
+		ResultSet selectRS = selectST.executeQuery(selectSQL);
+		while (selectRS.next()) {
+			task.setId(String.valueOf(id));
+			task.setTitle(selectRS.getString("title"));
+			task.setAddress(selectRS.getString("address"));
+			task.setStart_geometry(selectRS.getString("start_geometry"));
+			task.setEnd_geometry(selectRS.getString("end_geometry"));
+			task.setTime(selectRS.getString("time"));
+			task.setDistance(selectRS.getString("distance"));
+			task.setDuration(selectRS.getString("duration"));
 		}
+		selectRS.close();
+		selectST.close();
+		con.close();
+
 		return task;
 	}
 

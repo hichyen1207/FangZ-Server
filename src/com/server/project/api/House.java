@@ -13,8 +13,8 @@ public class House {
 	private String type;
 	private String url;
 	private String addressGeometry;
+	private String picture;
 	private double[] locationPoint;
-	private double[] addressPoint;
 
 	public int getId() {
 		return id;
@@ -120,12 +120,11 @@ public class House {
 		this.addressGeometry = addressGeometry;
 	}
 
-	public double[] getAddressPoint() {
-		return addressPoint;
+	public String getPicture() {
+		return picture;
 	}
 
-	public void setAddressPoint(double[] addressPoint) {
-		this.addressPoint = addressPoint;
+	public void setPicture(String picture) {
+		this.picture = picture;
 	}
-
 }

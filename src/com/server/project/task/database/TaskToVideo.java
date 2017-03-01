@@ -3,16 +3,17 @@ package com.server.project.task.database;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 public class TaskToVideo {
-	public static void main(String[] args) {
+	public static void main(String[] args)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		TaskToVideo ttv = new TaskToVideo();
 		ttv.toVideo("49", "iIPH8LFYFRk");
 	}
 
-	public void toVideo(String id, String youtubeID) {
-		try {
+	public void toVideo(String id, String youtubeID) throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 			// connect DB
 			Class.forName("org.postgresql.Driver").newInstance();
 			String url = "jdbc:postgresql://140.119.19.33:5432/project";
@@ -38,8 +39,5 @@ public class TaskToVideo {
 			selectST.close();
 			updateST.close();
 			con.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 }

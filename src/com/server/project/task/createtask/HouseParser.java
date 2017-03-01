@@ -1,5 +1,6 @@
 package com.server.project.task.createtask;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -14,16 +15,18 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 import com.google.gson.Gson;
 import com.server.project.api.House;
+import com.server.project.api.Point;
+import com.server.project.tool.PointCreator;
 
 public class HouseParser {
 	WebDriver driver;
 
-	public static void main(String[] args) throws InterruptedException, ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws Exception {
 		HouseParser ap = new HouseParser();
 		ap.parseAddress();
 	}
 
-	public void parseAddress() throws InterruptedException, ClassNotFoundException, SQLException {
+	public void parseAddress() throws Exception {
 		System.setProperty("webdriver.chrome.driver", "/Users/Hao/Documents/Java/ProjectServer/chromedriver");
 		driver = new ChromeDriver();
 		// parse 信義房屋
@@ -36,19 +39,15 @@ public class HouseParser {
 		// driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
 
 		int endNum = 0;
-		try {
-			Class.forName("org.postgresql.Driver").newInstance();
-			String url = "jdbc:postgresql://140.119.19.33:5432/project";
-			Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
-			Statement selectST = con.createStatement();
+		Class.forName("org.postgresql.Driver").newInstance();
+		String url = "jdbc:postgresql://140.119.19.33:5432/project";
+		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
+		Statement selectST = con.createStatement();
 
-			String getHouseNumSQL = "select count('id') from house;";
-			ResultSet selectRS = selectST.executeQuery(getHouseNumSQL);
-			while (selectRS.next()) {
-				endNum = Integer.valueOf(selectRS.getString(1));
-			}
-		} catch (Exception e) {
-			e.getMessage();
+		String getHouseNumSQL = "select count('id') from house;";
+		ResultSet selectRS = selectST.executeQuery(getHouseNumSQL);
+		while (selectRS.next()) {
+			endNum = Integer.valueOf(selectRS.getString(1));
 		}
 
 		int startPage = (endNum / 30) + 1;
@@ -129,28 +128,34 @@ public class HouseParser {
 				locationInsertIntoDB(house);
 			}
 		}
+		con.close();
+		selectRS.close();
+		selectST.close();
 		driver.quit();
 		System.out.println("complete parse the web and start to inert into DB.");
 	}
 
 	// 把爬到的經緯度資料存入資料庫
-	public void locationInsertIntoDB(House house) throws ClassNotFoundException, SQLException {
+	public void locationInsertIntoDB(House house) throws ClassNotFoundException, SQLException, IOException {
+		PointCreator pointCreator = new PointCreator();
+		Point addressPoint = pointCreator.createPointByRoad(house.getAddress());
 		Connection c = null;
 		// connect DB
 		Class.forName("org.postgresql.Driver");
 		c = DriverManager.getConnection("jdbc:postgresql://140.119.19.33:5432/project", "postgres", "093622");
 		// insert each location into table
 		Statement stmt = c.createStatement();
-		String insertHouseSQL = "INSERT INTO house(title, description, location, price, address, registered_square, status, pattern, type, url) VALUES('"
+		String insertHouseSQL = "INSERT INTO house(title, description, location, price, address, registered_square, status, pattern, type, url, address_point) VALUES('"
 				+ house.getTitle() + "', '" + house.getDescription() + "', ST_GeomFromText('POINT("
 				+ house.getLocation() + ")', 4326), '" + house.getPrice() + "', '" + house.getAddress() + "', '"
 				+ house.getRegisteredSquare() + "', '" + house.getStatus() + "', '" + house.getPattern() + "', '"
-				+ house.getType() + "', '" + house.getUrl() + "');";
+				+ house.getType() + "', '" + house.getUrl() + "', ST_GeomFromText('POINT(" + addressPoint.getLng() + " "
+				+ addressPoint.getLat() + ")', 4326));";
 		stmt.executeUpdate(insertHouseSQL);
 
 		stmt.close();
 		c.close();
-		System.out.println("insert 1");
+		System.out.println("insert");
 	}
 
 	private House seleniumParse(int index) {
@@ -231,6 +236,10 @@ public class HouseParser {
 					.getText();
 			itemDescription = itemDescription.replaceAll("\n", ", ");
 			house.setDescription(itemDescription);
+
+			// get picture
+			String itemPicture = itemDriver.findElement(By.id("big_img")).getAttribute("src");
+			house.setPicture(itemPicture);
 		}
 		itemDriver.close();
 		return house;
