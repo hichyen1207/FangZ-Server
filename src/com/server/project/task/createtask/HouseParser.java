@@ -145,12 +145,13 @@ public class HouseParser {
 		c = DriverManager.getConnection("jdbc:postgresql://140.119.19.33:5432/project", "postgres", "093622");
 		// insert each location into table
 		Statement stmt = c.createStatement();
-		String insertHouseSQL = "INSERT INTO house(title, description, location, price, address, registered_square, status, pattern, type, url, address_point) VALUES('"
+		String insertHouseSQL = "INSERT INTO house(title, description, location, price, address, registered_square, status, pattern, type, url, address_point, picture) VALUES('"
 				+ house.getTitle() + "', '" + house.getDescription() + "', ST_GeomFromText('POINT("
 				+ house.getLocation() + ")', 4326), '" + house.getPrice() + "', '" + house.getAddress() + "', '"
 				+ house.getRegisteredSquare() + "', '" + house.getStatus() + "', '" + house.getPattern() + "', '"
 				+ house.getType() + "', '" + house.getUrl() + "', ST_GeomFromText('POINT(" + addressPoint.getLng() + " "
-				+ addressPoint.getLat() + ")', 4326));";
+				+ addressPoint.getLat() + ")', 4326), '" + house.getPicture() + "');";
+		System.out.println(insertHouseSQL);
 		stmt.executeUpdate(insertHouseSQL);
 
 		stmt.close();

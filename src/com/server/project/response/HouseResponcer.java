@@ -1,5 +1,7 @@
 package com.server.project.response;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -12,8 +14,8 @@ import com.server.project.api.House;
 import com.server.project.tool.GeometryToPoint;
 
 public class HouseResponcer {
-	public static void main(String[] args)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException, SQLException, MalformedURLException, IOException {
 		Gson gson = new Gson();
 		HouseResponcer hr = new HouseResponcer();
 
@@ -22,7 +24,7 @@ public class HouseResponcer {
 		// System.out.println(gson.toJson(houseList));
 
 		// house
-		House house = hr.getHouse(9);
+		House house = hr.getHouse(339);
 		System.out.println(gson.toJson(house));
 	}
 
@@ -54,8 +56,8 @@ public class HouseResponcer {
 		return houseList;
 	}
 
-	public House getHouse(int id)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public House getHouse(int id) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
+			SQLException, MalformedURLException, IOException {
 		House house = null;
 		Class.forName("org.postgresql.Driver").newInstance();
 
@@ -77,6 +79,7 @@ public class HouseResponcer {
 			house.setPattern(selectRS.getString("pattern"));
 			house.setStatus(selectRS.getString("status"));
 			house.setUrl(selectRS.getString("url"));
+			house.setPicture(selectRS.getString("picture"));
 
 			String locationGeo = selectRS.getString("location");
 			GeometryToPoint toPoint = new GeometryToPoint();

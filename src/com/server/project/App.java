@@ -11,6 +11,7 @@ import com.server.project.response.HouseResponcer;
 import com.server.project.response.LocationResponcer;
 import com.server.project.response.TaskResponcer;
 import com.server.project.response.VideoResponcer;
+import com.server.project.response.YoutubeTokenResponcer;
 
 /**
  * Hello world!
@@ -23,6 +24,7 @@ public class App {
 		VideoResponcer videoResponcer = new VideoResponcer();
 		TaskResponcer getTask = new TaskResponcer();
 		HouseResponcer houseResponcer = new HouseResponcer();
+		YoutubeTokenResponcer youtubeTokenResponcer = new YoutubeTokenResponcer();
 
 		// set port
 		exception(Exception.class, (e, req, res) -> e.printStackTrace());
@@ -130,5 +132,30 @@ public class App {
 			}
 			return house;
 		}, gson::toJson);
+
+		// save access token
+		post("/saveAccessToken", (req, res) -> {
+			String access_token = req.queryParams("access_token");
+			String refresh_token = req.queryParams("refresh_token");
+			// String expires_in = req.queryParams("expires_in");
+			youtubeTokenResponcer.saveATtoDB(access_token, refresh_token);
+
+			res.body("successfully saves AT and RT to DB");
+			return res.body();
+		});
+
+		// get access token
+		post("/getAccessToken", (req, res) -> {
+
+			String access_token = youtubeTokenResponcer.getAccessToken();
+
+			if (access_token != null) {
+				res.body(access_token);
+				return res.body();
+			} else {
+				res.body("access_token not available");
+				return res.body();
+			}
+		});
 	}
 }
