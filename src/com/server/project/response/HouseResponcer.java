@@ -24,7 +24,7 @@ public class HouseResponcer {
 		// System.out.println(gson.toJson(houseList));
 
 		// house
-		House house = hr.getHouse(339);
+		House house = hr.getHouse(20);
 		System.out.println(gson.toJson(house));
 	}
 
