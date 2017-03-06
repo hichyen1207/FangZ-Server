@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.Gson;
+import com.server.project.api.Community;
 import com.server.project.api.House;
 import com.server.project.tool.GeometryToPoint;
 
@@ -24,7 +25,7 @@ public class HouseResponcer {
 		// System.out.println(gson.toJson(houseList));
 
 		// house
-		House house = hr.getHouse(20);
+		House house = hr.getHouse(129);
 		System.out.println(gson.toJson(house));
 	}
 
@@ -45,7 +46,6 @@ public class HouseResponcer {
 			house.setTitle(selectRS.getString("title"));
 			house.setAddress(address);
 			house.setType(selectRS.getString("type"));
-			house.setRegisteredSquare(selectRS.getString("registered_square"));
 			house.setPrice(selectRS.getString("price"));
 			houseList.add(house);
 		}
@@ -59,6 +59,7 @@ public class HouseResponcer {
 	public House getHouse(int id) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
 			SQLException, MalformedURLException, IOException {
 		House house = null;
+		Gson gson = new Gson();
 		Class.forName("org.postgresql.Driver").newInstance();
 
 		String url = "jdbc:postgresql://140.119.19.33:5432/project";
@@ -73,13 +74,15 @@ public class HouseResponcer {
 			house.setTitle(selectRS.getString("title"));
 			house.setAddress(selectRS.getString("address"));
 			house.setType(selectRS.getString("type"));
-			house.setRegisteredSquare(selectRS.getString("registered_square"));
 			house.setPrice(selectRS.getString("price"));
 			house.setDescription(selectRS.getString("description"));
-			house.setPattern(selectRS.getString("pattern"));
-			house.setStatus(selectRS.getString("status"));
 			house.setUrl(selectRS.getString("url"));
 			house.setPicture(selectRS.getString("picture"));
+			house.setLife(selectRS.getString("life"));
+			house.setInformation(selectRS.getString("information"));
+
+			Community community = gson.fromJson(selectRS.getString("community"), Community.class);
+			house.setCommunity(community);
 
 			String locationGeo = selectRS.getString("location");
 			GeometryToPoint toPoint = new GeometryToPoint();
