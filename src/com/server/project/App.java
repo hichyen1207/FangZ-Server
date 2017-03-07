@@ -43,19 +43,19 @@ public class App {
 		}, gson::toJson);
 
 		// task list
-		get("/taskList/:address/:time", (req, res) -> {
-			String address;
-			String time;
-			List<Task> taskList = null;
-			try {
-				address = req.params("address");
-				time = req.params("time");
-				taskList = getTask.getTaskList(address, time);
-			} catch (Exception e2) {
-				e2.getMessage();
-			}
-			return taskList;
-		}, gson::toJson);
+		// get("/taskList/:address/:time", (req, res) -> {
+		// String address;
+		// String time;
+		// List<Task> taskList = null;
+		// try {
+		// address = req.params("address");
+		// time = req.params("time");
+		// taskList = getTask.getTaskList(address, time);
+		// } catch (Exception e2) {
+		// e2.getMessage();
+		// }
+		// return taskList;
+		// }, gson::toJson);
 
 		// task
 		get("/task/:id", (req, res) -> {

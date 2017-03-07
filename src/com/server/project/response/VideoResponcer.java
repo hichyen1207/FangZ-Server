@@ -3,7 +3,6 @@ package com.server.project.response;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +13,7 @@ import com.server.project.api.Video;
 import com.server.project.tool.GeometryToPoint;
 
 public class VideoResponcer {
-	public static void main(String[] args)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws Exception {
 		Gson gson = new Gson();
 		VideoResponcer vg = new VideoResponcer();
 
@@ -28,8 +26,7 @@ public class VideoResponcer {
 		System.out.println(gson.toJson(result));
 	}
 
-	public Video getVideo(int id)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public Video getVideo(int id) throws Exception {
 		Video video = new Video();
 		// connect DB
 		Class.forName("org.postgresql.Driver").newInstance();
@@ -60,8 +57,7 @@ public class VideoResponcer {
 		return video;
 	}
 
-	public List<Video> getVideoList(String address)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public List<Video> getVideoList(String address) throws Exception {
 		Video video = new Video();
 		List<Video> vidoeList = new ArrayList<>();
 		// connect DB

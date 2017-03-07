@@ -1,4 +1,4 @@
-package com.server.project.tool;
+package com.server.project.notuse;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -7,6 +7,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 import com.server.project.api.Point;
+import com.server.project.tool.GeometryToPoint;
 
 public class AddressCreator {
 	public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {

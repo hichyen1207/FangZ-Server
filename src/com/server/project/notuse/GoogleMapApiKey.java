@@ -1,4 +1,4 @@
-package com.server.project.tool;
+package com.server.project.notuse;
 
 public class GoogleMapApiKey {
 	private static String key_01;

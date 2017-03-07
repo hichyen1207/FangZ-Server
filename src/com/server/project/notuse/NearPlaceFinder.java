@@ -1,4 +1,4 @@
-package com.server.project.task.location;
+package com.server.project.notuse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +15,6 @@ import org.jsoup.nodes.Document;
 
 import com.google.gson.Gson;
 import com.server.project.api.Point;
-import com.server.project.tool.GoogleMapApiKey;
 
 public class NearPlaceFinder {
 	public static void main(String[] args) throws IOException {

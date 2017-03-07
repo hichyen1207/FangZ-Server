@@ -1,9 +1,18 @@
 package com.server.project.api;
 
 public class Road {
+	private int id;
 	private String address;
 	private double lat;
 	private double lng;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getAddress() {
 		return address;

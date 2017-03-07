@@ -14,6 +14,15 @@ public class House {
 	private String information;
 	private Community community;
 	private String life;
+	private String square;
+
+	public String getSquare() {
+		return square;
+	}
+
+	public void setSquare(String square) {
+		this.square = square;
+	}
 
 	public String getInformation() {
 		return information;

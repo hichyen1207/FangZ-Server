@@ -1,10 +1,8 @@
 package com.server.project.response;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -12,28 +10,23 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import com.google.gson.Gson;
-import com.server.project.api.Point;
 import com.server.project.api.Road;
-import com.server.project.tool.PointCreator;
 
 public class LocationResponcer {
-	public static void main(String[] args)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws Exception {
 		Gson gson = new Gson();
 		LocationResponcer ll = new LocationResponcer();
 
 		// task location list
-		// List<Road> taskList = ll.getTaskLocationList();
-		// System.out.println(gson.toJson(taskList));
+		List<Road> taskList = ll.getTaskLocationList();
+		System.out.println(gson.toJson(taskList));
 
 		// video road list
-		List<Road> videoList = ll.getRoadList();
-		System.out.println(gson.toJson(videoList));
+		// List<Road> videoList = ll.getRoadList();
+		// System.out.println(gson.toJson(videoList));
 	}
 
-	public List<Road> getTaskLocationList()
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, IOException {
-		PointCreator createPoint = new PointCreator();
+	public List<Road> getTaskLocationList() throws Exception {
 		List<Road> taskLocation = new ArrayList<>();
 		Class.forName("org.postgresql.Driver").newInstance();
 
@@ -47,23 +40,31 @@ public class LocationResponcer {
 		int userCurrentTime = Integer.valueOf(dateFormat.format(cal.getTime()));
 		String reqTime = reqTimeToText(userCurrentTime);
 
-		String sql = " select * from task_" + reqTime + ";";
+		String sql = " select id, start_address, ST_AsText(start_geometry)  from task_" + reqTime + ";";
 
 		ResultSet selectRS = selectST.executeQuery(sql);
 		while (selectRS.next()) {
 			Road road = new Road();
 			int count = 0;
 			for (Road loIndex : taskLocation) {
-				if (selectRS.getString("address").equals(loIndex.getAddress())) {
+				if (selectRS.getString("start_address").equals(loIndex.getAddress())) {
 					count++;
 				}
 			}
 			if (count == 0) {
-				String address = selectRS.getString("address");
-				Point addressPoint = createPoint.createPointByRoad(address);
+				int id = selectRS.getInt("id");
+				String address = selectRS.getString("start_address");
+				String addressPoint = selectRS.getString("st_astext");
+				int startIndex = addressPoint.indexOf("(");
+				int midIndex = addressPoint.indexOf(" ");
+				int endIndex = addressPoint.indexOf(")");
+				double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
+				double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
+
+				road.setId(id);
 				road.setAddress(address);
-				road.setLat(addressPoint.getLat());
-				road.setLng(addressPoint.getLng());
+				road.setLat(lat);
+				road.setLng(lng);
 				taskLocation.add(road);
 			}
 		}
@@ -73,8 +74,7 @@ public class LocationResponcer {
 		return taskLocation;
 	}
 
-	public List<Road> getRoadList()
-			throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+	public List<Road> getRoadList() throws Exception {
 		List<Road> videoAddress = new ArrayList<>();
 		Class.forName("org.postgresql.Driver").newInstance();
 

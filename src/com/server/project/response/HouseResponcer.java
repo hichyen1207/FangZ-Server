@@ -1,11 +1,8 @@
 package com.server.project.response;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +12,7 @@ import com.server.project.api.House;
 import com.server.project.tool.GeometryToPoint;
 
 public class HouseResponcer {
-	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException, SQLException, MalformedURLException, IOException {
+	public static void main(String[] args) throws Exception {
 		Gson gson = new Gson();
 		HouseResponcer hr = new HouseResponcer();
 
@@ -29,8 +25,7 @@ public class HouseResponcer {
 		System.out.println(gson.toJson(house));
 	}
 
-	public List<House> getHouseList(String address)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+	public List<House> getHouseList(String address) throws Exception {
 		List<House> houseList = new ArrayList<>();
 
 		Class.forName("org.postgresql.Driver").newInstance();
@@ -47,6 +42,7 @@ public class HouseResponcer {
 			house.setAddress(address);
 			house.setType(selectRS.getString("type"));
 			house.setPrice(selectRS.getString("price"));
+			house.setSquare(selectRS.getString("square"));
 			houseList.add(house);
 		}
 
@@ -56,8 +52,7 @@ public class HouseResponcer {
 		return houseList;
 	}
 
-	public House getHouse(int id) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
-			SQLException, MalformedURLException, IOException {
+	public House getHouse(int id) throws Exception {
 		House house = null;
 		Gson gson = new Gson();
 		Class.forName("org.postgresql.Driver").newInstance();
@@ -80,6 +75,7 @@ public class HouseResponcer {
 			house.setPicture(selectRS.getString("picture"));
 			house.setLife(selectRS.getString("life"));
 			house.setInformation(selectRS.getString("information"));
+			house.setSquare(selectRS.getString("square"));
 
 			Community community = gson.fromJson(selectRS.getString("community"), Community.class);
 			house.setCommunity(community);
