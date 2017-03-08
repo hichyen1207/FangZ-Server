@@ -90,6 +90,7 @@ public class LocationResponcer {
 			count++;
 			Road road = new Road();
 
+			int id = selectRS.getInt("id");
 			String address = selectRS.getString("address");
 			String addressPoint = selectRS.getString("st_astext");
 			int startIndex = addressPoint.indexOf("(");
@@ -98,6 +99,7 @@ public class LocationResponcer {
 			double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
 			double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
 
+			road.setId(id);
 			road.setAddress(address);
 			road.setLat(lat);
 			road.setLng(lng);
