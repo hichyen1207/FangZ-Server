@@ -4,11 +4,11 @@ public class Task {
 	private String id;
 	private String title;
 	private String Address;
-	private String start_geometry;
-	private String end_geometry;
 	private String time;
 	private String distance;
 	private String duration;
+	private Point start_point;
+	private Point end_point;
 
 	public String getId() {
 		return id;
@@ -34,22 +34,6 @@ public class Task {
 		Address = address;
 	}
 
-	public String getStart_geometry() {
-		return start_geometry;
-	}
-
-	public void setStart_geometry(String start_geometry) {
-		this.start_geometry = start_geometry;
-	}
-
-	public String getEnd_geometry() {
-		return end_geometry;
-	}
-
-	public void setEnd_geometry(String end_geometry) {
-		this.end_geometry = end_geometry;
-	}
-
 	public String getTime() {
 		return time;
 	}
@@ -72,6 +56,22 @@ public class Task {
 
 	public void setDuration(String duration) {
 		this.duration = duration;
+	}
+
+	public Point getStart_point() {
+		return start_point;
+	}
+
+	public void setStart_point(Point start_point) {
+		this.start_point = start_point;
+	}
+
+	public Point getEnd_point() {
+		return end_point;
+	}
+
+	public void setEnd_point(Point end_point) {
+		this.end_point = end_point;
 	}
 
 }

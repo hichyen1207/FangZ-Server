@@ -5,11 +5,11 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import com.google.gson.Gson;
+import com.server.project.api.Point;
 import com.server.project.api.Task;
 
 public class TaskResponcer {
-	public static void main(String[] args)
-			throws Exception {
+	public static void main(String[] args) throws Exception {
 		Gson gson = new Gson();
 		TaskResponcer tr = new TaskResponcer();
 
@@ -18,7 +18,7 @@ public class TaskResponcer {
 		// System.out.println(gson.toJson(list));
 
 		// task
-		Task retask = tr.getTask(68);
+		Task retask = tr.getTask(1);
 		System.out.println(gson.toJson(retask));
 	}
 
@@ -61,14 +61,14 @@ public class TaskResponcer {
 	// return taskList;
 	// }
 
-	public Task getTask(int id)
-			throws Exception {
+	public Task getTask(int id) throws Exception {
 		Task task = new Task();
 		// connect DB
 		Class.forName("org.postgresql.Driver").newInstance();
 		String url = "jdbc:postgresql://140.119.19.33:5432/project";
 		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
 		Statement selectST = con.createStatement();
+		Statement getPointST = con.createStatement();
 
 		String selectSQL = "select * from task where id=" + id + ";";
 		ResultSet selectRS = selectST.executeQuery(selectSQL);
@@ -76,12 +76,43 @@ public class TaskResponcer {
 			task.setId(String.valueOf(id));
 			task.setTitle(selectRS.getString("title"));
 			task.setAddress(selectRS.getString("address"));
-			task.setStart_geometry(selectRS.getString("start_geometry"));
-			task.setEnd_geometry(selectRS.getString("end_geometry"));
 			task.setTime(selectRS.getString("time"));
 			task.setDistance(selectRS.getString("distance"));
 			task.setDuration(selectRS.getString("duration"));
+
+			String getStartGeoSQL = "select ST_AsText(start_geometry) from task where id=" + id + ";";
+			ResultSet getStartRS = getPointST.executeQuery(getStartGeoSQL);
+			while (getStartRS.next()) {
+				String startPoint = getStartRS.getString("st_astext");
+				int startIndex = startPoint.indexOf("(");
+				int midIndex = startPoint.indexOf(" ");
+				int endIndex = startPoint.indexOf(")");
+				double lng = Double.valueOf(startPoint.substring(startIndex + 1, midIndex));
+				double lat = Double.valueOf(startPoint.substring(midIndex + 1, endIndex));
+				Point point = new Point();
+				point.setLat(lat);
+				point.setLng(lng);
+				task.setStart_point(point);
+			}
+
+			String getEndGeoSQL = "select ST_AsText(end_geometry) from task where id=" + id + ";";
+			ResultSet getEndRS = getPointST.executeQuery(getEndGeoSQL);
+			while (getEndRS.next()) {
+				String endPoint = getEndRS.getString("st_astext");
+				int startIndex = endPoint.indexOf("(");
+				int midIndex = endPoint.indexOf(" ");
+				int endIndex = endPoint.indexOf(")");
+				double lng = Double.valueOf(endPoint.substring(startIndex + 1, midIndex));
+				double lat = Double.valueOf(endPoint.substring(midIndex + 1, endIndex));
+				Point point = new Point();
+				point.setLat(lat);
+				point.setLng(lng);
+				task.setEnd_point(point);
+			}
+			getEndRS.close();
+			getStartRS.close();
 		}
+		getPointST.close();
 		selectRS.close();
 		selectST.close();
 		con.close();
