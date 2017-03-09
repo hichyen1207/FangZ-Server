@@ -18,12 +18,12 @@ public class VideoResponcer {
 		VideoResponcer vg = new VideoResponcer();
 
 		// video list
-		List<Video> videoList = vg.getVideoList("0101000020E6100000A60A4625755E5E408BFD65F7E4013940");
+		List<Video> videoList = vg.getVideoList("台北市文山區秀明路二段");
 		System.out.println(gson.toJson(videoList));
 
 		// video
-		Video result = vg.getVideo(3738);
-		System.out.println(gson.toJson(result));
+		// Video result = vg.getVideo(3738);
+		// System.out.println(gson.toJson(result));
 	}
 
 	public Video getVideo(int id) throws Exception {
@@ -58,7 +58,6 @@ public class VideoResponcer {
 	}
 
 	public List<Video> getVideoList(String address) throws Exception {
-		Video video = new Video();
 		List<Video> vidoeList = new ArrayList<>();
 		// connect DB
 		Class.forName("org.postgresql.Driver").newInstance();
@@ -69,6 +68,7 @@ public class VideoResponcer {
 		String selectSQL = "select * from video where address='" + address + "';";
 		ResultSet selectRS = selectST.executeQuery(selectSQL);
 		while (selectRS.next()) {
+			Video video = new Video();
 			video.setId(selectRS.getInt("id"));
 			video.setTitle(selectRS.getString("title"));
 			video.setTime(selectRS.getString("time"));

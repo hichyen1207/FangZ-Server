@@ -12,6 +12,7 @@ import com.server.project.response.LocationResponcer;
 import com.server.project.response.TaskResponcer;
 import com.server.project.response.VideoResponcer;
 import com.server.project.response.YoutubeTokenResponcer;
+import com.server.project.task.database.TaskToVideo;
 
 /**
  * Hello world!
@@ -25,6 +26,7 @@ public class App {
 		TaskResponcer getTask = new TaskResponcer();
 		HouseResponcer houseResponcer = new HouseResponcer();
 		YoutubeTokenResponcer youtubeTokenResponcer = new YoutubeTokenResponcer();
+		TaskToVideo taskToVideo = new TaskToVideo();
 
 		// set port
 		exception(Exception.class, (e, req, res) -> e.printStackTrace());
@@ -156,6 +158,15 @@ public class App {
 				res.body("access_token not available");
 				return res.body();
 			}
+		});
+
+		// save task
+		post("/saveTask", (req, res) -> {
+			String id = req.queryParams("id");
+			String youtubeId = req.queryParams("youtubeId");
+			taskToVideo.toVideo(id, youtubeId);
+
+			return "insert id:" + id + " into Video";
 		});
 	}
 }
