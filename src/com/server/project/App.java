@@ -164,7 +164,10 @@ public class App {
 		post("/saveTask", (req, res) -> {
 			String id = req.queryParams("id");
 			String youtubeId = req.queryParams("youtubeId");
-			taskToVideo.toVideo(id, youtubeId);
+			String shop = req.queryParams("shop");
+			String weather = req.queryParams("weather");
+			String facility = req.queryParams("facility");
+			taskToVideo.toVideo(id, youtubeId, shop, weather, facility);
 
 			return "insert id:" + id + " into Video";
 		});

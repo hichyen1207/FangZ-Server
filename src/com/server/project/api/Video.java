@@ -8,6 +8,9 @@ public class Video {
 	private double[] end_geometry;
 	private String time;
 	private String address;
+	private String shop;
+	private String weather;
+	private String facility;
 
 	public int getId() {
 		return id;
@@ -63,6 +66,30 @@ public class Video {
 
 	public void setAddress(String address) {
 		this.address = address;
+	}
+
+	public String getShop() {
+		return shop;
+	}
+
+	public void setShop(String shop) {
+		this.shop = shop;
+	}
+
+	public String getWeather() {
+		return weather;
+	}
+
+	public void setWeather(String weather) {
+		this.weather = weather;
+	}
+
+	public String getFacility() {
+		return facility;
+	}
+
+	public void setFacility(String facility) {
+		this.facility = facility;
 	}
 
 }

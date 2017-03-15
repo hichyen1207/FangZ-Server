@@ -5,6 +5,7 @@ public class Road {
 	private String address;
 	private double lat;
 	private double lng;
+	private int houseNumber;
 
 	public int getId() {
 		return id;
@@ -36,6 +37,14 @@ public class Road {
 
 	public void setLng(double lng) {
 		this.lng = lng;
+	}
+
+	public int getHouseNumber() {
+		return houseNumber;
+	}
+
+	public void setHouseNumber(int houseNumber) {
+		this.houseNumber = houseNumber;
 	}
 
 }

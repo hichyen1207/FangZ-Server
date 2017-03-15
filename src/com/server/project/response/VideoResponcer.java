@@ -49,6 +49,9 @@ public class VideoResponcer {
 			video.setEnd_geometry(end_geometry);
 			video.setAddress(selectRS.getString("address"));
 			video.setTime(selectRS.getString("time"));
+			video.setShop(selectRS.getString("shop"));
+			video.setWeather(selectRS.getString("weather"));
+			video.setFacility(selectRS.getString("facility"));
 		}
 		selectRS.close();
 		selectST.close();

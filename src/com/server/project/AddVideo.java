@@ -27,7 +27,7 @@ public class AddVideo {
 		for (int i = 0; i <= 40; i++) {
 			String youtubeId = list.get(i).findElement(By.tagName("a")).getAttribute("href");
 			youtubeId = youtubeId.substring(32);
-			taskToVideo.toVideo(String.valueOf(i + 110), youtubeId);
+			taskToVideo.toVideo(String.valueOf(i + 110), youtubeId, "aaa", "aAa", "aaa");
 		}
 		driver.close();
 
