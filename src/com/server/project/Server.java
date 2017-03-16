@@ -18,6 +18,7 @@ import com.server.project.response.LocationResponcer;
 import com.server.project.response.TaskResponcer;
 import com.server.project.response.VideoResponcer;
 import com.server.project.response.YoutubeTokenResponcer;
+import com.server.project.task.database.TaskToVideo;
 
 import spark.servlet.SparkApplication;
 
@@ -31,6 +32,7 @@ public class Server implements SparkApplication {
 		TaskResponcer getTask = new TaskResponcer();
 		HouseResponcer houseResponcer = new HouseResponcer();
 		YoutubeTokenResponcer youtubeTokenResponcer = new YoutubeTokenResponcer();
+		TaskToVideo taskToVideo = new TaskToVideo();
 
 		// set port
 		exception(Exception.class, (e, req, res) -> e.printStackTrace());
@@ -162,6 +164,18 @@ public class Server implements SparkApplication {
 				res.body("access_token not available");
 				return res.body();
 			}
+		});
+
+		// save task
+		post("/saveTask", (req, res) -> {
+			String id = req.queryParams("id");
+			String youtubeId = req.queryParams("youtubeId");
+			String shop = req.queryParams("shop");
+			String weather = req.queryParams("weather");
+			String facility = req.queryParams("facility");
+			taskToVideo.toVideo(id, youtubeId, shop, weather, facility);
+
+			return "insert id:" + id + " into Video";
 		});
 	}
 
