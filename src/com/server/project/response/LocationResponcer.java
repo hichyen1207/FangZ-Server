@@ -75,6 +75,7 @@ public class LocationResponcer {
 	}
 
 	public List<Road> getRoadList() throws Exception {
+		System.out.println("start");
 		List<Road> videoAddress = new ArrayList<>();
 		Class.forName("org.postgresql.Driver").newInstance();
 

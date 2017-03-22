@@ -75,6 +75,10 @@ public class VideoResponcer {
 			video.setId(selectRS.getInt("id"));
 			video.setTitle(selectRS.getString("title"));
 			video.setTime(selectRS.getString("time"));
+			video.setShop(selectRS.getString("shop"));
+			video.setWeather(selectRS.getString("weather"));
+			video.setFacility(selectRS.getString("facility"));
+			video.setYoutube_id(selectRS.getString("youtube_id"));
 			vidoeList.add(video);
 		}
 		selectRS.close();
