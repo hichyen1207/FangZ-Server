@@ -81,10 +81,9 @@ public class LocationResponcer {
 
 		String url = "jdbc:postgresql://140.119.19.33:5432/project";
 		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
-		Statement selectST = con.createStatement();
-		Statement getNumST = con.createStatement();
+		Statement selectST = con.createStatement();		
 
-		String sql = "select distinct address, ST_AsText(address_point)  from house;";
+		String sql = "select id, address, ST_AsText(geometry), house_number from address;";
 
 		ResultSet selectRS = selectST.executeQuery(sql);
 		int count = 0;
@@ -92,6 +91,7 @@ public class LocationResponcer {
 			count++;
 			Road road = new Road();			
 			
+			int id = selectRS.getInt("id");
 			String address = selectRS.getString("address");
 			String addressPoint = selectRS.getString("st_astext");
 			int startIndex = addressPoint.indexOf("(");
@@ -99,17 +99,9 @@ public class LocationResponcer {
 			int endIndex = addressPoint.indexOf(")");
 			double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
 			double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
-			int houseNum = 0;
-
-			String getHouseNumSQL = "select address,count(id) from house group by address;";
-			ResultSet getNumRS = getNumST.executeQuery(getHouseNumSQL);
-			while(getNumRS.next()){
-				if(getNumRS.getString("address").equals(address)){
-					houseNum = getNumRS.getInt("count");
-					break;
-				}
-			}
+			int houseNum = selectRS.getInt("house_number");			
 			
+			road.setId(id);
 			road.setAddress(address);
 			road.setLat(lat);
 			road.setLng(lng);
