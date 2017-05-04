@@ -23,15 +23,15 @@ public class TaskToVideo {
 		ResultSet selectRS = selectST.executeQuery(selectSQL);
 		while (selectRS.next()) {
 			// task to video
-			String insertSQL = "insert into video (id, title, youtube_id, start_geometry, end_geometry, time, address, shop, weather, facility) values ("
-					+ selectRS.getString("id") + ",'" + selectRS.getString("title") + "','" + youtubeID + "', '"
-					+ selectRS.getString("start_geometry") + "', '" + selectRS.getString("end_geometry") + "', '"
-					+ selectRS.getString("time") + "', '" + selectRS.getString("address") + "', '" + shop + "', '"
-					+ weather + "', '" + facility + "');";
-			String deleteSQL = "delete from task where id=" + id;
+			String insertSQL = "insert into video (title, youtube_id, start_geometry, end_geometry, time, address, shop, weather, facility) values ('"
+					+ selectRS.getString("title") + "','" + youtubeID + "', '" + selectRS.getString("start_geometry")
+					+ "', '" + selectRS.getString("end_geometry") + "', '" + selectRS.getString("time") + "', '"
+					+ selectRS.getString("address") + "', '" + shop + "', '" + weather + "', '" + facility + "');";
+			// String deleteSQL = "delete from task where id=" + id;
+			System.out.println(insertSQL);
 			updateST.executeUpdate(insertSQL);
 			System.out.println("task id:" + id + " insert to video");
-			updateST.executeUpdate(deleteSQL);
+			// updateST.executeUpdate(deleteSQL);
 		}
 
 		selectRS.close();

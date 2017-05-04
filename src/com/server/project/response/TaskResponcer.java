@@ -18,7 +18,7 @@ public class TaskResponcer {
 		// System.out.println(gson.toJson(list));
 
 		// task
-		Task retask = tr.getTask(1);
+		Task retask = tr.getTask(5880);
 		System.out.println(gson.toJson(retask));
 	}
 
@@ -76,7 +76,7 @@ public class TaskResponcer {
 			task.setId(String.valueOf(id));
 			task.setTitle(selectRS.getString("title"));
 			task.setAddress(selectRS.getString("address"));
-			task.setTime(selectRS.getString("time"));
+			// task.setTime(selectRS.getString("time"));
 			task.setDistance(selectRS.getString("distance"));
 			task.setDuration(selectRS.getString("duration"));
 

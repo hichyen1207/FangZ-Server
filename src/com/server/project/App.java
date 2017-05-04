@@ -9,6 +9,7 @@ import com.server.project.api.Task;
 import com.server.project.api.Video;
 import com.server.project.response.HouseResponcer;
 import com.server.project.response.LocationResponcer;
+import com.server.project.response.SearchResponcer;
 import com.server.project.response.TaskResponcer;
 import com.server.project.response.VideoResponcer;
 import com.server.project.response.YoutubeTokenResponcer;
@@ -27,6 +28,7 @@ public class App {
 		HouseResponcer houseResponcer = new HouseResponcer();
 		YoutubeTokenResponcer youtubeTokenResponcer = new YoutubeTokenResponcer();
 		TaskToVideo taskToVideo = new TaskToVideo();
+		SearchResponcer searchResponcer = new SearchResponcer();
 
 		// set port
 		exception(Exception.class, (e, req, res) -> e.printStackTrace());
@@ -171,5 +173,20 @@ public class App {
 
 			return "insert id:" + id + " into Video";
 		});
+
+		// search by tag
+		post("/search", (req, res) -> {
+			List<com.server.project.api.Road> resultAddress = new ArrayList<>();
+			String shops = req.queryParams("shop");
+			String facilities = req.queryParams("facility");
+			String environments = req.queryParams("environment");
+
+			try {
+				resultAddress = searchResponcer.searchByTag(shops, facilities, environments);
+			} catch (Exception e) {
+				e.getMessage();
+			}
+			return resultAddress;
+		}, gson::toJson);
 	}
 }

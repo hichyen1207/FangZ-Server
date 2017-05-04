@@ -4,10 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import com.google.gson.Gson;
 import com.server.project.api.Road;
@@ -18,12 +15,12 @@ public class LocationResponcer {
 		LocationResponcer ll = new LocationResponcer();
 
 		// task location list
-		// List<Road> taskList = ll.getTaskLocationList();
-		// System.out.println(gson.toJson(taskList));
+//		List<Road> taskList = ll.getTaskLocationList();
+//		System.out.println(gson.toJson(taskList));
 
 		// video road list
-		List<Road> videoList = ll.getRoadList();
-		System.out.println(gson.toJson(videoList));
+		 List<Road> videoList = ll.getRoadList();
+		 System.out.println(gson.toJson(videoList));
 	}
 
 	public List<Road> getTaskLocationList() throws Exception {
@@ -35,12 +32,16 @@ public class LocationResponcer {
 		Statement selectST = con.createStatement();
 
 		// check time
-		DateFormat dateFormat = new SimpleDateFormat("HH");
-		Calendar cal = Calendar.getInstance();
-		int userCurrentTime = Integer.valueOf(dateFormat.format(cal.getTime()));
-		String reqTime = reqTimeToText(userCurrentTime);
+		// DateFormat dateFormat = new SimpleDateFormat("HH");
+		// Calendar cal = Calendar.getInstance();
+		// int userCurrentTime =
+		// Integer.valueOf(dateFormat.format(cal.getTime()));
+		// String reqTime = reqTimeToText(userCurrentTime);
+		//
+		// String sql = "select id, start_address, ST_AsText(start_geometry)
+		// from task_" + reqTime + ";";
 
-		String sql = " select id, start_address, ST_AsText(start_geometry)  from task_" + reqTime + ";";
+		String sql = "select id, start_address, ST_AsText(start_geometry)  from task;";
 
 		ResultSet selectRS = selectST.executeQuery(sql);
 		while (selectRS.next()) {
@@ -81,7 +82,7 @@ public class LocationResponcer {
 
 		String url = "jdbc:postgresql://140.119.19.33:5432/project";
 		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
-		Statement selectST = con.createStatement();		
+		Statement selectST = con.createStatement();
 
 		String sql = "select id, address, ST_AsText(geometry), house_number from address;";
 
@@ -89,8 +90,8 @@ public class LocationResponcer {
 		int count = 0;
 		while (selectRS.next()) {
 			count++;
-			Road road = new Road();			
-			
+			Road road = new Road();
+
 			int id = selectRS.getInt("id");
 			String address = selectRS.getString("address");
 			String addressPoint = selectRS.getString("st_astext");
@@ -99,8 +100,8 @@ public class LocationResponcer {
 			int endIndex = addressPoint.indexOf(")");
 			double lng = Double.valueOf(addressPoint.substring(startIndex + 1, midIndex));
 			double lat = Double.valueOf(addressPoint.substring(midIndex + 1, endIndex));
-			int houseNum = selectRS.getInt("house_number");			
-			
+			int houseNum = selectRS.getInt("house_number");
+
 			road.setId(id);
 			road.setAddress(address);
 			road.setLat(lat);
