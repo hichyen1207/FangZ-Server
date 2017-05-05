@@ -13,7 +13,6 @@ public class taskFixer {
 
 	public void fixTask() throws Exception {
 		Class.forName("org.postgresql.Driver").newInstance();
-
 		String url = "jdbc:postgresql://140.119.19.33:5432/project";
 		Connection con = DriverManager.getConnection(url, "postgres", "093622"); // 帳號密碼
 		Statement selectST = con.createStatement();
@@ -53,4 +52,5 @@ public class taskFixer {
 		selectST.close();
 		con.close();
 	}
+
 }

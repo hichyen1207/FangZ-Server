@@ -169,7 +169,9 @@ public class App {
 			String shop = req.queryParams("shop");
 			String weather = req.queryParams("weather");
 			String facility = req.queryParams("facility");
-			taskToVideo.toVideo(id, youtubeId, shop, weather, facility);
+			String time = req.queryParams("time");
+			String environment = req.queryParams("environment");
+			taskToVideo.toVideo(id, youtubeId, shop, weather, facility, time, environment);
 
 			return "insert id:" + id + " into Video";
 		});
