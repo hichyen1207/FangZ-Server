@@ -24,7 +24,7 @@ public class YoutubeTokenResponcer {
 		c = DriverManager.getConnection("jdbc:postgresql://140.119.19.33:5432/project", "postgres", "093622");
 		System.out.println("Opened database successfully");
 		Statement stmt = c.createStatement();
-		String getATSQL = "SELECT access_token FROM accessToken where id=2;";
+		String getATSQL = "SELECT access_token FROM accessToken ORDER BY id DESC LIMIT 1;";
 		ResultSet rs = stmt.executeQuery(getATSQL);
 
 		if (rs.next()) {
