@@ -18,12 +18,12 @@ public class VideoResponcer {
 		VideoResponcer vg = new VideoResponcer();
 
 		// video list
-		List<Video> videoList = vg.getVideoList("台北市文山區秀明路二段");
+		List<Video> videoList = vg.getVideoList("台北市文山區樟新街");
 		System.out.println(gson.toJson(videoList));
 
 		// video
-		// Video result = vg.getVideo(3738);
-		// System.out.println(gson.toJson(result));
+		 Video result = vg.getVideo(3625);
+//		 System.out.println(gson.toJson(result));
 	}
 
 	public Video getVideo(int id) throws Exception {
@@ -52,6 +52,7 @@ public class VideoResponcer {
 			video.setShop(selectRS.getString("shop"));
 			video.setWeather(selectRS.getString("weather"));
 			video.setFacility(selectRS.getString("facility"));
+			video.setEnvironment(selectRS.getString("environment"));
 		}
 		selectRS.close();
 		selectST.close();
@@ -79,6 +80,7 @@ public class VideoResponcer {
 			video.setWeather(selectRS.getString("weather"));
 			video.setFacility(selectRS.getString("facility"));
 			video.setYoutube_id(selectRS.getString("youtube_id"));
+			video.setEnvironment(selectRS.getString("environment"));
 			vidoeList.add(video);
 		}
 		selectRS.close();

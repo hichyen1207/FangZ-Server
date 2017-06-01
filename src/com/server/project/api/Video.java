@@ -11,6 +11,7 @@ public class Video {
 	private String shop;
 	private String weather;
 	private String facility;
+	private String environment;
 
 	public int getId() {
 		return id;
@@ -92,4 +93,11 @@ public class Video {
 		this.facility = facility;
 	}
 
+	public String getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(String environment) {
+		this.environment = environment;
+	}
 }
